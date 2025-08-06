@@ -1,5 +1,6 @@
 # Extreme Accountability
-If I don't log an activity in Strava by the end of the day, this bot will send an email to my friends to inform them of my shame. 
+
+**If I don't log an activity in Strava by the end of the day, this bot will send an email to my friends to inform them of my shame.**
 
 The script uses the Strava API to retrieve user data, then sends an email via SMTP server with the user's credentials. 
 The script can be scheduled using Github Actions with a cron job. 
@@ -12,6 +13,7 @@ STRAVA_REFRESH_TOKEN = 'your_refresh_token'
 TO_EMAIL = 'accountability@friend.com'
 FROM_EMAIL = 'your_email@example.com'
 EMAIL_PASSWORD = 'your_email_password'
+OPENAI_KEY='sk-proj-abc...'
 ```
 
 The current functionality could probably be achieved using Zapier instead, but I'd like to keep iterating until it's (ideally) packaged as an app. Future iterations will include:
