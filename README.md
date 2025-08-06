@@ -33,8 +33,9 @@ Milestone 2: Frontend
 1. Set up DB
 2. Frontend with dashboard and email input
 3. Display streak, history
-4. Shareable QR code to add yourself to the mailing list
-5. Package as app
+4. Pause button
+5. Shareable QR code to add yourself to the mailing list
+6. Package as app
 
 Milestone 3: Multithread
 1. Allow user to input Strava credentials
