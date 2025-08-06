@@ -12,12 +12,14 @@ Milestone 2: Frontend
 Milestone 3: Multithread
 1. Allow user to input Strava credentials
 2. Allow user to input openAI creds
-3. Allow user to launch the scheduler
+3. Allow user to input email creds
+4. Allow user to launch the scheduler
 
 Milestone 4: Prod
 1. Log in with Strava via OAuth
-2. Option to log in with openAI via OAuth
-3. Optimised UX
+2. Log in with email OAuth
+3. Option to log in with openAI via OAuth
+4. Optimised UX
 
 Milestone 5: Beyond
 1. Integrate new tasks (Duolingo? Goodreads? Common productivity apps?)
