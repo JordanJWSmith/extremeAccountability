@@ -1,9 +1,11 @@
 import os
+import smtplib
 import requests
 import datetime
-import smtplib
-from email.mime.text import MIMEText
 from dotenv import load_dotenv
+from email.mime.text import MIMEText
+
+from generate_message import generate_shame_message
 
 # Load environment variables
 load_dotenv()
@@ -41,8 +43,12 @@ def get_today_activities(access_token):
     return response.json()
 
 def send_shame_email():
-    msg = MIMEText("Jordan didn't work out today. Shame! 😔")
-    msg['Subject'] = "Workout Failure Alert"
+    response_obj = generate_shame_message()
+    msg_text = response_obj['body']       # HTML body
+    msg_subject = response_obj['subject'] # Plaintext subject
+
+    msg = MIMEText(msg_text, 'html')  # Tell MIMEText this is HTML
+    msg['Subject'] = msg_subject
     msg['From'] = FROM_EMAIL
     msg['To'] = TO_EMAIL
 
