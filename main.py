@@ -29,7 +29,42 @@ def get_access_token():
         }
     )
     response.raise_for_status()
-    return response.json()['access_token']
+    token_data = response.json()
+
+    access_token = token_data['access_token']
+    new_refresh_token = token_data.get('refresh_token')
+
+    # this won't work when deployed in github?
+    if new_refresh_token and new_refresh_token != STRAVA_REFRESH_TOKEN:
+        print("🔄 New refresh token received. Updating .env file...")
+        update_env_file('STRAVA_REFRESH_TOKEN', new_refresh_token)
+
+    return access_token
+
+def update_env_file(key, value, env_path=".env"):
+    # Load current .env content
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            lines = f.readlines()
+    else:
+        lines = []
+
+    key_found = False
+    for i, line in enumerate(lines):
+        if line.startswith(f"{key}="):
+            lines[i] = f"{key}={value}\n"
+            key_found = True
+            break
+
+    if not key_found:
+        lines.append(f"{key}={value}\n")
+
+    with open(env_path, 'w') as f:
+        f.writelines(lines)
+
+    # Update in-memory environment for the current run
+    os.environ[key] = value
+
 
 def get_today_activities(access_token):
     today = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -63,6 +98,7 @@ def main():
         send_shame_email()
     else:
         print("Workout complete. No shame needed!")
+        print(activities)
 
 if __name__ == "__main__":
     main()
