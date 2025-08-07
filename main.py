@@ -4,8 +4,14 @@ import requests
 import datetime
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
+from pymongo import MongoClient
 
 from generate_message import generate_shame_message
+
+MONGODB_URI = os.getenv('MONGODB_URI')
+client = MongoClient(MONGODB_URI)
+db = client['extremeAccountability']  # or whatever database name you want
+config_collection = db['creds']
 
 # Load environment variables
 load_dotenv()
@@ -18,14 +24,31 @@ FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 TO_EMAIL = os.getenv('TO_EMAIL')
 
+
+def get_refresh_token_from_db():
+    doc = config_collection.find_one({"user": "jordan"})
+    if doc and 'refresh_token' in doc:
+        return doc['refresh_token']
+    raise Exception("No refresh token found in MongoDB.")
+
+def save_refresh_token_to_db(new_token):
+    config_collection.update_one(
+        {"user": "jordan"},
+        {"$set": {"refresh_token": new_token}},
+        upsert=True
+    )
+
+
 def get_access_token():
+    refresh_token = get_refresh_token_from_db()
+
     response = requests.post(
         'https://www.strava.com/oauth/token',
         data={
             'client_id': STRAVA_CLIENT_ID,
             'client_secret': STRAVA_CLIENT_SECRET,
             'grant_type': 'refresh_token',
-            'refresh_token': STRAVA_REFRESH_TOKEN
+            'refresh_token': refresh_token
         }
     )
     response.raise_for_status()
@@ -34,36 +57,11 @@ def get_access_token():
     access_token = token_data['access_token']
     new_refresh_token = token_data.get('refresh_token')
 
-    # this won't work when deployed in github?
-    if new_refresh_token and new_refresh_token != STRAVA_REFRESH_TOKEN:
-        print("🔄 New refresh token received. Updating .env file...")
-        update_env_file('STRAVA_REFRESH_TOKEN', new_refresh_token)
+    if new_refresh_token and new_refresh_token != refresh_token:
+        print("🔄 New refresh token received. Updating MongoDB...")
+        save_refresh_token_to_db(new_refresh_token)
 
     return access_token
-
-def update_env_file(key, value, env_path=".env"):
-    # Load current .env content
-    if os.path.exists(env_path):
-        with open(env_path, 'r') as f:
-            lines = f.readlines()
-    else:
-        lines = []
-
-    key_found = False
-    for i, line in enumerate(lines):
-        if line.startswith(f"{key}="):
-            lines[i] = f"{key}={value}\n"
-            key_found = True
-            break
-
-    if not key_found:
-        lines.append(f"{key}={value}\n")
-
-    with open(env_path, 'w') as f:
-        f.writelines(lines)
-
-    # Update in-memory environment for the current run
-    os.environ[key] = value
 
 
 def get_today_activities(access_token):
