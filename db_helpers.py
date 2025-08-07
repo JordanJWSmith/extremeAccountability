@@ -1,0 +1,29 @@
+import os
+from pymongo import MongoClient
+
+MONGODB_URI = os.getenv('MONGODB_URI')
+client = MongoClient(MONGODB_URI)
+db = client['extremeAccountability']  
+config_collection = db['creds']
+
+
+def get_refresh_token_from_db():
+    doc = config_collection.find_one({"user": "jordan"})
+    if doc and 'refresh_token' in doc:
+        return doc['refresh_token']
+    raise Exception("No refresh token found in MongoDB.")
+
+
+def save_refresh_token_to_db(new_token):
+    config_collection.update_one(
+        {"user": "jordan"},
+        {"$set": {"refresh_token": new_token}},
+        upsert=True
+    )
+
+
+def get_email_recipients_from_db():
+    doc = config_collection.find_one({"user": "jordan"})
+    if doc and 'recipients' in doc and isinstance(doc['recipients'], list):
+        return doc['recipients']
+    raise Exception("No email recipients found in MongoDB.")
