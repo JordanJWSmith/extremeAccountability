@@ -1,0 +1,32 @@
+name: Extreme Accountability Bot
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # 11pm BST = 10pm UTC
+  workflow_dispatch:     # Optional: allow manual runs
+
+jobs:
+  run-shamebot:
+    runs-on: ubuntu-latest
+
+    env:
+      STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Shamebot
+        run: python main.py

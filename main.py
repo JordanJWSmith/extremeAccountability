@@ -12,8 +12,6 @@ from strava_helpers import get_access_token, get_today_activities
 
 FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-TO_EMAIL = os.getenv('TO_EMAIL')
-
 
 def send_shame_email():
     recipients = get_email_recipients_from_db()
@@ -44,7 +42,7 @@ def main():
     else:
         print("Workout complete. No shame needed!")
         print(activities)
-        
+
 
 if __name__ == "__main__":
     main()

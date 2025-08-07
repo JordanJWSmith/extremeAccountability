@@ -5,20 +5,21 @@
 The script uses the Strava API to retrieve user data, then sends an email via SMTP server with the user's credentials. 
 The script can be scheduled using Github Actions with a cron job. 
 
-It's currently a naive implementation.  It requires an `.env` file with the following parameters:
+The app is currently in the MVP stage. It uses a mongoDB connection to store and retrieve dynamic sensitive values (i.e. Strava access token, refresh token, email recipients).
+It requires an `.env` file with the following parameters:
+
 ```
 STRAVA_CLIENT_ID = 'your_client_id'
 STRAVA_CLIENT_SECRET = 'your_client_secret'
-STRAVA_REFRESH_TOKEN = 'your_refresh_token'
-TO_EMAIL = 'accountability@friend.com'
-FROM_EMAIL = 'your_email@example.com'
+FROM_EMAIL = 'your_refresh_token'
 EMAIL_PASSWORD = 'your_email_password'
 OPENAI_KEY='sk-proj-abc...'
+MONGODB_URI='MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/mydb?retryWrites=true&w=majority'
 ```
 
 The current functionality could probably be achieved using Zapier instead, but I'd like to keep iterating until it's (ideally) packaged as an app. Future iterations will include:
-- A frontend with a dashboard 
-- Strava and GMail OAuth logins
+- A frontend with a dashboard and OAuth logins
+- Shareable QR codes to add yourself as an email recipient
 - Integrating new sources of shame (e.g. Duolingo)
 
 
@@ -27,15 +28,15 @@ The current functionality could probably be achieved using Zapier instead, but I
 Milestone 1: MVP
 1. Hardcoded email
 2. LLM-generated email
-3. Emails keep getting worse the longer the dry spell gets
+3. Set up DB to retrieve dynamic sensitive values
+4. Emails keep getting worse the longer the dry spell gets
 
 Milestone 2: Frontend
-1. Set up DB
-2. Frontend with dashboard and email input
-3. Display streak, history
-4. Pause button
-5. Shareable QR code to add yourself to the mailing list
-6. Package as app
+1. Frontend with dashboard and email input
+2. Display streak, history
+3. Pause button
+4. Shareable QR code to add yourself to the mailing list
+5. Package as app
 
 Milestone 3: Multithread
 1. Allow user to input Strava credentials
