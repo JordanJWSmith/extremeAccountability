@@ -1,8 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
+import time
 import smtplib
 import requests
 import datetime
-from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from pymongo import MongoClient
 
@@ -10,15 +13,11 @@ from generate_message import generate_shame_message
 
 MONGODB_URI = os.getenv('MONGODB_URI')
 client = MongoClient(MONGODB_URI)
-db = client['extremeAccountability']  # or whatever database name you want
+db = client['extremeAccountability']  
 config_collection = db['creds']
-
-# Load environment variables
-load_dotenv()
 
 STRAVA_CLIENT_ID = os.getenv('STRAVA_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.getenv('STRAVA_CLIENT_SECRET')
-STRAVA_REFRESH_TOKEN = os.getenv('STRAVA_REFRESH_TOKEN')
 
 FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
@@ -31,6 +30,7 @@ def get_refresh_token_from_db():
         return doc['refresh_token']
     raise Exception("No refresh token found in MongoDB.")
 
+
 def save_refresh_token_to_db(new_token):
     config_collection.update_one(
         {"user": "jordan"},
@@ -39,8 +39,31 @@ def save_refresh_token_to_db(new_token):
     )
 
 
+def get_email_recipients_from_db():
+    doc = config_collection.find_one({"user": "jordan"})
+    if doc and 'recipients' in doc and isinstance(doc['recipients'], list):
+        return doc['recipients']
+    raise Exception("No email recipients found in MongoDB.")
+
+
 def get_access_token():
-    refresh_token = get_refresh_token_from_db()
+    doc = config_collection.find_one({"user": "jordan"})
+    if not doc:
+        raise Exception("Strava credentials not found in DB.")
+
+    access_token = doc.get("access_token")
+    expires_at = doc.get("access_token_expires_at", 0)
+    refresh_token = doc.get("refresh_token")
+
+    current_time = int(time.time())
+
+    # If access token exists and hasn't expired, use it
+    if access_token and current_time < expires_at:
+        print("✅ Using cached access token.")
+        return access_token
+
+    # Otherwise, refresh the token
+    print("🔄 Access token missing or expired. Refreshing...")
 
     response = requests.post(
         'https://www.strava.com/oauth/token',
@@ -54,14 +77,23 @@ def get_access_token():
     response.raise_for_status()
     token_data = response.json()
 
-    access_token = token_data['access_token']
-    new_refresh_token = token_data.get('refresh_token')
+    new_access_token = token_data['access_token']
+    new_refresh_token = token_data.get('refresh_token', refresh_token)
+    expires_at = token_data['expires_at']  # UNIX timestamp
 
-    if new_refresh_token and new_refresh_token != refresh_token:
-        print("🔄 New refresh token received. Updating MongoDB...")
-        save_refresh_token_to_db(new_refresh_token)
+    # Save tokens back to DB
+    config_collection.update_one(
+        {"user": "jordan"},
+        {"$set": {
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "access_token_expires_at": expires_at
+        }},
+        upsert=True
+    )
 
-    return access_token
+    print("✅ New access token saved to DB.")
+    return new_access_token
 
 
 def get_today_activities(access_token):
@@ -75,19 +107,27 @@ def get_today_activities(access_token):
     response.raise_for_status()
     return response.json()
 
+
 def send_shame_email():
+    recipients = get_email_recipients_from_db()
     response_obj = generate_shame_message()
-    msg_text = response_obj['body']       # HTML body
-    msg_subject = response_obj['subject'] # Plaintext subject
+    msg_text = response_obj['body']
+    msg_subject = response_obj['subject']
 
-    msg = MIMEText(msg_text, 'html')  # Tell MIMEText this is HTML
-    msg['Subject'] = msg_subject
-    msg['From'] = FROM_EMAIL
-    msg['To'] = TO_EMAIL
+    for email in recipients:
+        msg = MIMEText(msg_text, 'html')
+        msg['Subject'] = msg_subject
+        msg['From'] = FROM_EMAIL
+        msg['To'] = email
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-        server.login(FROM_EMAIL, EMAIL_PASSWORD)
-        server.send_message(msg)
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                server.login(FROM_EMAIL, EMAIL_PASSWORD)
+                server.send_message(msg)
+            print(f"✅ Email sent to {email}")
+        except Exception as e:
+            print(f"❌ Failed to send email to {email}: {e}")
+
 
 def main():
     token = get_access_token()
