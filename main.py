@@ -6,18 +6,22 @@ import smtplib
 from email.mime.text import MIMEText
 
 from generate_message import generate_shame_message
-from db_helpers import get_email_recipients_from_db
-from strava_helpers import get_access_token, get_today_activities
+from helpers.db_helpers import get_email_recipients_from_db
+from helpers.strava_helpers import get_access_token, get_today_activities
 
 
 FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
+ENV=os.getenv("ENV")
 
 def send_shame_email():
     recipients = get_email_recipients_from_db()
     response_obj = generate_shame_message()
     msg_text = response_obj['body']
     msg_subject = response_obj['subject']
+
+    if ENV == "dev":
+        recipients = [FROM_EMAIL]
 
     for email in recipients:
         msg = MIMEText(msg_text, 'html')

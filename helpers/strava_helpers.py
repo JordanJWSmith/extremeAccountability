@@ -6,7 +6,7 @@ import time
 import requests
 import datetime
 
-from db_helpers import config_collection
+from helpers.db_helpers import config_collection
 
 STRAVA_CLIENT_ID = os.getenv('STRAVA_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.getenv('STRAVA_CLIENT_SECRET')

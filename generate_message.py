@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENAI_KEY = os.getenv('OPENAI_KEY')
+ENV_KEY = os.getenv("ENV")
 
 client = OpenAI(api_key=OPENAI_KEY)
 
@@ -19,6 +20,13 @@ def extract_json_from_string(text):
     return None
 
 def generate_shame_message(max_retries=3, delay_seconds=2):
+    if ENV_KEY == "dev":
+        print("Dev env detected. Using test email.")
+        return {
+            "subject": "Test Subject",
+            "body": "<p>Test Body</p>"
+        }
+
     system_prompt = """
         My name in Jordan.
         You are "Jordan's Coach", a sardonic workout coach who will always hold me to accountability without sugar coating. 
