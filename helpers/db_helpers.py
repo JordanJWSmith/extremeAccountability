@@ -5,6 +5,9 @@ MONGODB_URI = os.getenv('MONGODB_URI')
 client = MongoClient(MONGODB_URI)
 db = client['extremeAccountability']  
 config_collection = db['creds']
+recipients_collection = db['recipients']
+
+ENV=os.getenv("ENV")
 
 
 def get_refresh_token_from_db():
@@ -23,7 +26,18 @@ def save_refresh_token_to_db(new_token):
 
 
 def get_email_recipients_from_db():
-    doc = config_collection.find_one({"user": "jordan"})
-    if doc and 'recipients' in doc and isinstance(doc['recipients'], list):
-        return doc['recipients']
-    raise Exception("No email recipients found in MongoDB.")
+    if ENV == "dev":
+        return list(
+            recipients_collection.find(
+                {"user": "jordan", "dev": True}, 
+                {"_id": 0, "email": 1, "first_name": 1}
+            )
+        )
+    
+    return list(
+        recipients_collection.find(
+            {"user": "jordan"}, 
+            {"_id": 0, "email": 1, "first_name": 1}
+        )
+    )
+  

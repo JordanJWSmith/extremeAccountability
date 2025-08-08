@@ -20,11 +20,14 @@ def send_shame_email():
     msg_text = response_obj['body']
     msg_subject = response_obj['subject']
 
-    if ENV == "dev":
-        recipients = [FROM_EMAIL]
+    for recipient in recipients:
+        name = recipient['first_name']
+        email = recipient['email']
+        formatted_msg_text = msg_text.replace("{{friend}}", name)
 
-    for email in recipients:
-        msg = MIMEText(msg_text, 'html')
+        # print(f"sending {formatted_msg_text} to {name} at {email}")
+
+        msg = MIMEText(formatted_msg_text, 'html')
         msg['Subject'] = msg_subject
         msg['From'] = FROM_EMAIL
         msg['To'] = email
