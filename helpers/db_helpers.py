@@ -9,6 +9,22 @@ recipients_collection = db['recipients']
 
 ENV=os.getenv("ENV")
 
+def get_creds_from_db():
+    doc = config_collection.find_one({"user": "jordan"})
+    return doc
+
+
+def update_strava_tokens_in_db(new_access_token, new_refresh_token, expires_at):
+    config_collection.update_one(
+        {"user": "jordan"},
+        {"$set": {
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "access_token_expires_at": expires_at
+        }},
+        upsert=True
+    )
+
 
 def get_refresh_token_from_db():
     doc = config_collection.find_one({"user": "jordan"})

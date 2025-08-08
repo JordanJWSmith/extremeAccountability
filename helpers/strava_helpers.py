@@ -6,13 +6,13 @@ import time
 import requests
 import datetime
 
-from helpers.db_helpers import config_collection
+from helpers.db_helpers import get_creds_from_db, update_strava_tokens_in_db
 
 STRAVA_CLIENT_ID = os.getenv('STRAVA_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.getenv('STRAVA_CLIENT_SECRET')
 
 def get_access_token():
-    doc = config_collection.find_one({"user": "jordan"})
+    doc = get_creds_from_db()
     if not doc:
         raise Exception("Strava credentials not found in DB.")
 
@@ -47,15 +47,7 @@ def get_access_token():
     expires_at = token_data['expires_at']  # UNIX timestamp
 
     # Save tokens back to DB
-    config_collection.update_one(
-        {"user": "jordan"},
-        {"$set": {
-            "access_token": new_access_token,
-            "refresh_token": new_refresh_token,
-            "access_token_expires_at": expires_at
-        }},
-        upsert=True
-    )
+    update_strava_tokens_in_db(new_access_token, new_refresh_token, expires_at)
 
     print("✅ New access token saved to DB.")
     return new_access_token

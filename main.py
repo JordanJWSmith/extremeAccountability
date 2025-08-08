@@ -9,7 +9,6 @@ from helpers.generate_message import generate_shame_message
 from helpers.db_helpers import get_email_recipients_from_db
 from helpers.strava_helpers import get_access_token, get_today_activities
 
-
 FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 ENV=os.getenv("ENV")
