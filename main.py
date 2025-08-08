@@ -5,7 +5,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 
-from generate_message import generate_shame_message
+from helpers.generate_message import generate_shame_message
 from helpers.db_helpers import get_email_recipients_from_db
 from helpers.strava_helpers import get_access_token, get_today_activities
 
