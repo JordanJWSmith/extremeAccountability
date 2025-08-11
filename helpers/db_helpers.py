@@ -26,11 +26,11 @@ def update_strava_tokens_in_db(new_access_token, new_refresh_token, expires_at):
     )
 
 
-def get_refresh_token_from_db():
+def get_active_status_from_db():
     doc = config_collection.find_one({"user": "jordan"})
-    if doc and 'refresh_token' in doc:
-        return doc['refresh_token']
-    raise Exception("No refresh token found in MongoDB.")
+    if doc and 'active' in doc:
+        return doc['active']
+    raise Exception("No active status found in MongoDB.")
 
 
 def save_refresh_token_to_db(new_token):

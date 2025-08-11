@@ -6,7 +6,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 from helpers.generate_message import generate_shame_message
-from helpers.db_helpers import get_email_recipients_from_db
+from helpers.db_helpers import get_email_recipients_from_db, get_active_status_from_db
 from helpers.strava_helpers import get_access_token, get_today_activities
 
 FROM_EMAIL = os.getenv('FROM_EMAIL')
@@ -34,13 +34,18 @@ def send_shame_email():
         try:
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                 server.login(FROM_EMAIL, EMAIL_PASSWORD)
-                server.send_message(msg)
+                # server.send_message(msg)
             print(f"✅ Email sent to {email}")
         except Exception as e:
             print(f"❌ Failed to send email to {email}: {e}")
 
 
 def main():
+    active = get_active_status_from_db()
+    if not active:
+        print("User is inactive")
+        return
+    
     token = get_access_token()
     activities = get_today_activities(token)
     if not activities:
