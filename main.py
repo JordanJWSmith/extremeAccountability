@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 
 from helpers.generate_message import generate_shame_message
 from helpers.db_helpers import get_email_recipients_from_db, get_active_status_from_db
-from helpers.strava_helpers import get_access_token, get_today_activities
+from helpers.strava_helpers import get_access_token, get_today_activities, last_week_range_london, get_activities_in_range
 
 FROM_EMAIL = os.getenv('FROM_EMAIL')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
@@ -45,15 +45,35 @@ def main():
     if not active:
         print("User is inactive")
         return
-    
+
     token = get_access_token()
-    activities = get_today_activities(token)
-    if not activities:
+    week_start, week_end = last_week_range_london()
+
+    activities = get_activities_in_range(token, week_start, week_end)
+    count = len(activities)
+    print(f"Last week ({week_start.date()} to {week_end.date()}): {count} activities")
+
+    if count < 4:
+        # TODO: pass count/dates to the LLM to make the email extra spicy
         send_shame_email()
     else:
-        print("Workout complete. No shame needed!")
-        print(activities)
+        print("Workouts complete. No shame required.")
 
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     active = get_active_status_from_db()
+#     if not active:
+#         print("User is inactive")
+#         return
+    
+#     token = get_access_token()
+#     activities = get_today_activities(token)
+#     if not activities:
+#         send_shame_email()
+#     else:
+#         print("Workout complete. No shame needed!")
+#         print(activities)
+
+
+# if __name__ == "__main__":
+#     main()

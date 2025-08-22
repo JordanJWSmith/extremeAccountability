@@ -5,11 +5,13 @@ import os
 import time
 import requests
 import datetime
+from zoneinfo import ZoneInfo
 
 from helpers.db_helpers import get_creds_from_db, update_strava_tokens_in_db
 
 STRAVA_CLIENT_ID = os.getenv('STRAVA_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.getenv('STRAVA_CLIENT_SECRET')
+STRAVA_API = 'https://www.strava.com/api/v3/athlete/activities'
 
 def get_access_token():
     doc = get_creds_from_db()
@@ -53,11 +55,54 @@ def get_access_token():
     return new_access_token
 
 
+def last_week_range_london(now: datetime.datetime | None = None):
+    """Return previous week [Mon 00:00, Sun 23:59:59.999999] in Europe/London."""
+    tz = ZoneInfo('Europe/London')
+    now = now or datetime.datetime.now(tz)
+
+    # Start of this week (Monday 00:00)
+    this_monday = (now - datetime.timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Previous week range
+    start = this_monday - datetime.timedelta(days=7)
+    end = this_monday - datetime.timedelta(microseconds=1)
+    return start, end
+
+
+def get_activities_in_range(access_token: str, start_dt: datetime.datetime, end_dt: datetime.datetime):
+    """Fetch all activities between start_dt and end_dt (inclusive), paging as needed."""
+    after = int(start_dt.astimezone(datetime.timezone.utc).timestamp())
+    before = int(end_dt.astimezone(datetime.timezone.utc).timestamp())
+
+    headers = {'Authorization': f'Bearer {access_token}'}
+    page = 1
+    per_page = 200  # max per Strava API; reduces calls
+    all_acts = []
+
+    while True:
+        resp = requests.get(
+            STRAVA_API,
+            headers=headers,
+            params={'after': after, 'before': before, 'page': page, 'per_page': per_page},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        batch = resp.json()
+        if not batch:
+            break
+        all_acts.extend(batch)
+        if len(batch) < per_page:
+            break
+        page += 1
+
+    return all_acts
+
+
 def get_today_activities(access_token):
     today = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     after_epoch = int(today.timestamp())
     response = requests.get(
-        'https://www.strava.com/api/v3/athlete/activities',
+        STRAVA_API,
         headers={'Authorization': f'Bearer {access_token}'},
         params={'after': after_epoch}
     )
