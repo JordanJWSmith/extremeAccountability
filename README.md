@@ -29,7 +29,8 @@ Milestone 1: MVP
 1. Hardcoded email
 2. LLM-generated email
 3. Set up DB to retrieve dynamic sensitive values
-4. Emails keep getting worse the longer the dry spell gets
+4. Trigger if there are fewer than 4 activities in a week
+5. Emails keep getting worse the longer the dry spell gets
 
 Milestone 2: Frontend
 1. Frontend with dashboard and email input
