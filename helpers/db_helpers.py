@@ -27,9 +27,13 @@ def update_strava_tokens_in_db(new_access_token, new_refresh_token, expires_at):
 
 
 def get_active_status_from_db():
+    if ENV == "dev":
+        return True
+    
     doc = config_collection.find_one({"user": "jordan"})
     if doc and 'active' in doc:
         return doc['active']
+    
     raise Exception("No active status found in MongoDB.")
 
 
@@ -43,6 +47,7 @@ def save_refresh_token_to_db(new_token):
 
 def get_email_recipients_from_db():
     if ENV == "dev":
+        # return records with the `dev: True` value
         return list(
             recipients_collection.find(
                 {"user": "jordan", "dev": True}, 

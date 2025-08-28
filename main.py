@@ -53,7 +53,7 @@ def main():
     count = len(activities)
     print(f"Last week ({week_start.date()} to {week_end.date()}): {count} activities")
 
-    if count < 4:
+    if count < 10:
         # TODO: pass count/dates to the LLM to make the email extra spicy
         send_shame_email()
     else:
@@ -75,5 +75,5 @@ def main():
 #         print(activities)
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
