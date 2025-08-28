@@ -60,20 +60,5 @@ def main():
         print("Workouts complete. No shame required.")
 
 
-# def main():
-#     active = get_active_status_from_db()
-#     if not active:
-#         print("User is inactive")
-#         return
-    
-#     token = get_access_token()
-#     activities = get_today_activities(token)
-#     if not activities:
-#         send_shame_email()
-#     else:
-#         print("Workout complete. No shame needed!")
-#         print(activities)
-
-
 if __name__ == "__main__":
     main()
