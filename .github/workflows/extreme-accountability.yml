@@ -2,7 +2,7 @@ name: Extreme Accountability Bot
 
 on:
   schedule:
-    - cron: '0 22 * * *' # 11pm BST = 10pm UTC
+    - cron: '0 8 * * 1'  # Every Monday 08:00 UTC (09:00 in BST, 08:00 in GMT)
   workflow_dispatch:     # Optional: allow manual runs
 
 jobs:
